@@ -1,0 +1,17 @@
+{
+  "name": "vana-raksha",
+  "version": "0.1.0",
+  "private": true,
+  "description": "VanaRaksha — Bengaluru Climate Risk Assessment Tool",
+  "main": "src/VanaRaksha.jsx",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "check": "node --check src/data/WARD_DB.js"
+  },
+  "devDependencies": { "vite": "^5.4.0", "@vitejs/plugin-react": "^4.3.0" },
+  "dependencies": {},
+  "keywords": ["bengaluru","climate","risk","flood","heat-island","water-stress","ai"]
+}
