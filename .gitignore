@@ -6,4 +6,3 @@ dist/
 Thumbs.db
 .vscode/
 .idea/
-src/components/__pycache__/

@@ -13,7 +13,7 @@ export default function CoverageMap({userLat,userLon,matchStatus}) {
     <svg width="100%" viewBox={`0 0 ${MW} ${MH}`} style={{maxWidth:700,borderRadius:12,border:"1px solid #e5e7eb",background:"#f8fafc"}}>
       <rect x={20} y={20} width={MW-40} height={MH-40} rx={60} fill="none" stroke="#cbd5e1" strokeWidth="2" strokeDasharray="8,4"/>
       <text x={MW/2} y={25} textAnchor="middle" fontSize="12" fill="#94a3b8" fontWeight="600">Bengaluru Ward Coverage</text>
-      {Object.entries(WARD_DB).map(([k,w])=>{
+      {Object.entries(WARD_DB).map(([k,w]) => {
         const c=WC[k];if(!c)return null;
         const{x,y}=gp(c.lat,c.lon),hd=w.flood!=null&&w.ndvi!=null;
         return<circle key={k} cx={x} cy={y} r={k==="koramangala"?7:5} fill={!hd?"#d1d5db":k==="koramangala"?"#059669":"#3b82f6"} stroke="white" strokeWidth={1} opacity={0.9}/>;

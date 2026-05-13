@@ -125,9 +125,9 @@ export async function analyzePhoto(photo, matchedWard) {
     `Analyze this photo for urban climate risk signals in Bengaluru.\n` +
     `Return ONLY valid JSON matching this schema:\n` +
     `{\n` +
-    `  "flood_signals": ["string — list of observed flood risk indicators"],\n` +
-    `  "heat_signals": ["string — list of observed UHI indicators"],\n` +
-    `  "water_signals": ["string — list of observed water stress indicators"],\n` +
+    `  "flood_signals": ["string \u2014 list of observed flood risk indicators"],\n` +
+    `  "heat_signals": ["string \u2014 list of observed UHI indicators"],\n` +
+    `  "water_signals": ["string \u2014 list of observed water stress indicators"],\n` +
     `  "key_observation": "one sentence summary",\n` +
     `  "confidence": "Low|Medium|High"\n` +
     `}\n` +
@@ -179,18 +179,18 @@ export async function runSynthesis(
     `- User notes: ${notes || "None"}\n` +
     `- Ward: ${matchedWard ? matchedWard.label : "Unknown/unmatched"}\n` +
     `- Zone: ${matchedWard ? matchedWard.zone : "N/A"}\n` +
-    (matchedWard?.isInterpolated ? `⚠️ INTERPOLATED DATA — ward was not directly in database; proxied from nearest zone\n` : "") +
+    (matchedWard?.isInterpolated ? `\u26a0\ufe0f INTERPOLATED DATA \u2014 ward was not directly in database; proxied from nearest zone\n` : "") +
     `\n` +
     `PHOTO EVIDENCE (${photoEvidence.length} photos analyzed):\n` +
     `${photoEvidence.map((p) =>
       `Photo ${p.photo_index}: [Flood: ${p.flood_signals.length} signals, Heat: ${p.heat_signals.length} signals, Water: ${p.water_signals.length} signals, confidence: ${p.confidence}]`
     ).join("\n")}\n` +
     `${photoEvidence.length > 0 ? "\nDetailed photo signals:\n" + photoEvidence.map((p) =>
-      `Photo ${p.photo_index} — Flood: ${p.flood_signals.join("; ") || "none"} | Heat: ${p.heat_signals.join("; ") || "none"} | Water: ${p.water_signals.join("; ") || "none"}`
+      `Photo ${p.photo_index} \u2014 Flood: ${p.flood_signals.join("; ") || "none"} | Heat: ${p.heat_signals.join("; ") || "none"} | Water: ${p.water_signals.join("; ") || "none"}`
     ).join("\n") : ""}\n` +
     `\nLOCAL TESTIMONY (${testimonyEvidence.length} entries):\n` +
     `${testimonyEvidence.map((t) =>
-      `"${t.statement}" — ${t.who} (concern: ${t.concern_level}, credibility: ${t.credibility_score}/5)`
+      `"${t.statement}" \u2014 ${t.who} (concern: ${t.concern_level}, credibility: ${t.credibility_score}/5)`
     ).join("\n")}\n` +
     (testimonyEvidence.length === 0 ? "(No testimonies provided)\n" : "") +
     `\nWARD BASELINE SUMMARY:\n` +
@@ -200,7 +200,7 @@ export async function runSynthesis(
         `- Water baseline: ${matchedWard.water} (table: ${matchedWard.water_table_depth_m || "N/A"}m, BWSSB: ${matchedWard.bwssb_sewer_coverage_pct || "N/A"}%)\n` +
         `- NDVI: ${matchedWard.ndvi || "N/A"}, Impervious: ${matchedWard.impervious_pct || "N/A"}%\n` +
         `- Lakes: ${matchedWard.lake_count || 0}, pop density: ${matchedWard.pop_density?.toLocaleString() || "N/A"}/sqkm`
-      : "No ward data available — use Bengaluru city-wide baselines.") +
+      : "No ward data available \u2014 use Bengaluru city-wide baselines.") +
     `\n\nYour task: Produce a single, authoritative risk assessment that synthesizes ALL evidence (photographic, testimonial, ward baseline, and city context). Be specific, cite data points, and flag any data gaps or contradictions.\n`;
   try {
     const rawResponse = await callOpenAI(
