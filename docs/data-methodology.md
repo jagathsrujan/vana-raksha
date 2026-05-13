@@ -1,1 +1,1 @@
-PLACEHOLDER_DATA_METHODLOGY
+The production system uses **OpenAI GPT-4o** with **AI-determined dynamic weights** rather than fixed formulas. GPT-4o supports vision input for photo analysis and JSON-mode structured output for reliable parsing.

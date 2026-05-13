@@ -2,15 +2,17 @@
 
 ## Milestones
 - [x] Architecture defined (2026-05-13)
-- [x] API strategy: Gemini 2.0 Flash (free) via Cloudflare Worker proxy
+- [x] API strategy: OpenAI GPT-4o via Cloudflare Worker proxy
 - [x] Scoring methodology: AI-dynamic weights + published research citations
 - [x] Ward list locked: 25 largest/most significant Bengaluru wards
 - [x] WARD_DB format decided: single `WARD_DB.js` file, full schema with source trail
 - [x] GitHub repo created with full folder structure
-- [x] All skeleton components, utils, and pages implemented
-- [ ] WARD_DB compiled (25 wards) — **NEXT: hand off research agent prompt**
-- [ ] Ward matching + nearest-zone interpolation tested with real data
-- [ ] Integration: WARD_DB → VanaRaksha.jsx connected
+- [x] WARD_DB compiled (25 wards, v1.0.0) — **COMPLETE 2026-05-13**
+- [x] Ward matching + nearest-zone interpolation engine
+- [x] UI refactored into components
+- [x] **API integration: src/api.js — OpenAI GPT-4o layer with Cloudflare Worker proxy (2026-05-14)**
+- [ ] Agent prompt tested and WARD_DB v1.0 generated
+- [ ] Integration: WARD_DB → VanaRaksha.jsx
 - [ ] QA pass for domain expert demo
 - [ ] Deploy to Vercel/Netlify
 - [ ] Competition submission
@@ -21,9 +23,24 @@
 - Confirmed: no backend, competition demo, free hosting
 - API: Google Gemini 2.0 Flash (free tier) via Cloudflare Worker proxy
 - Proxy: Cloudflare Worker (free, 100K req/day) to hide API key
-- Scoring: AI-dynamic weights + cite published research (hybrid approach)
+- Scoring: AI-dynamic weights + cite published research (hybrid D+A)
 - WARD_DB: single file, 25 wards, expanded schema with quantitative data
 - Nearest-zone interpolation for uncovered wards with confidence penalty
 - Coverage map on Step 1 for transparency
-- Repo structure created with all core files
-- Research agent prompt finalized at `agents/research-prompt.md`
+- Repo structure created
+- Detailed agent research prompt written
+
+### 2026-05-14 — Session 2: API Integration (pivoted to OpenAI)
+- **Pivoted API**: Gemini 2.0 Flash → **OpenAI GPT-4o** (better vision + reasoning for domain expert demo)
+- Added `src/api.js`: GPT-4o API communication layer with:
+  - Photo analysis via OpenAI vision (`image_url` with base64)
+  - Risk synthesis via structured JSON output
+  - Cloudflare Worker proxy support (`VITE_API_PROXY_URL`)
+  - Direct API fallback (`VITE_OPENAI_API_KEY`)
+  - Auto-retry with exponential backoff (3 attempts)
+- Rewired `VanaRaksha.jsx` to import from `api.js`
+- Added `react` + `react-dom` dependencies (missing, broke Vite build)
+- All ESM imports use explicit `.js` extensions
+- Updated `.env.example`, `README.md`, `docs/data-methodology.md`
+- Build passes cleanly: 26 modules, 138ms
+- Next: deploy proxy + run end-to-end test

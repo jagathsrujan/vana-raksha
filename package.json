@@ -9,9 +9,19 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "check": "node --check src/data/WARD_DB.js"
+    "check": "node --check src/data/WARD_DB.js",
+    "lint": "eslint src/"
   },
-  "devDependencies": { "vite": "^5.4.0", "@vitejs/plugin-react": "^4.3.0" },
-  "dependencies": {},
-  "keywords": ["bengaluru","climate","risk","flood","heat-island","water-stress","ai"]
+  "keywords": ["bengaluru", "climate", "risk", "flood", "heat-island", "water-stress", "assessment", "ai"],
+  "author": "VanaRaksha",
+  "license": "MIT",
+  "devDependencies": {
+    "vite": "^5.4.0",
+    "@vitejs/plugin-react": "^4.3.0",
+    "eslint": "^8.57.0"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  }
 }
