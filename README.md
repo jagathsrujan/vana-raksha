@@ -1,1 +1,229 @@
-PLACEHOLDER_WILL_BE_REPLACED
+# VanaRaksha
+
+**Bengaluru Property Climate Risk Assessment Tool** — Built for domain expert judges (urban planners, climate researchers).
+
+![Architecture](https://img.shields.io/badge/Architecture-Single%20Page%20React-blue)
+![AI](https://img.shields.io/badge/AI-Google%20Gemini%202.0%20Flash-green)
+![License](https://img.shields.io/badge/License-MIT-green)
+![Wards](https://img.shields.io/badge/Coverage-25%20wards%20(all%208%20BBMP%20zones)-orange)
+
+VanaRaksha is a **single-page React web app** that assesses **flood risk**, **urban heat island (UHI) risk**, and **water stress** for any Bengaluru property using ward-level data, AI-powered photo analysis, and LLM reasoning.
+
+## Quick Start
+
+```bash
+git clone https://github.com/jagathsrujan/vana-raksha.git
+cd vana-raksha
+npm install
+npm run dev  # Opens http://localhost:3000
+```
+
+Deploy free to Vercel/Netlify — no backend needed.
+
+## Architecture
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│  VanaRaksha (Static React SPA)                                   │
+│                                                                   │
+│  ┌─────────────────────────────────────────────────────────┐     │
+│  │  5-Step Wizard UI                                        │     │
+│  │  Step 0: Landing  →  Step 1: Location  →  Step 2: Prop  │     │
+│  │  →  Step 3: Photos  →  Step 4: Testimony  →  Step 5:    │     │
+│  │  Results                                                 │     │
+│  └──────────────────┬──────────────────────────────────────┘     │
+│                     │                                           │
+│  ┌──────────────────▼──────────────────────────────────────┐     │
+│  │  matchWard.js  —  3-pass geocoding engine               │     │
+│  │  Pass 1: PIN code  →  Pass 2: Keywords  →  Pass 3:      │     │
+│  │  Haversine nearest-ward interpolation w/ confidence      │     │
+│  └──────────────────┬──────────────────────────────────────┘     │
+│                     │                                           │
+│  ┌──────────────────▼──────────────────────────────┐          │
+│  │  WARD_DB.js  —  25 wards × 29 fields each       │          │
+│  │  725 data points, every field has _sources trail │          │
+│  └──────────────────┬──────────────────────────────┘          │
+│                     │                                           │
+│  ┌──────────────────▼──────────────────────────────┐          │
+│  │  buildPrompt.js  —  Gemini system prompt        │          │
+│  │  builder: city baseline + ward data injection    │          │
+│  └──────────────────┬──────────────────────────────┘          │
+│                     │                                           │
+│  ┌──────────────────▼──────────────────────────────┐          │
+│  │  GemAI Pipeline (Phase 1 + Phase 2)              │          │
+│  │  Phase 1: Per-photo vision analysis (×5 max)    │          │
+│  │  Phase 2: Risk synthesis — dynamic weights,     │          │
+│  │  citations, JSON schema output                   │          │
+│  └──────────────────┬──────────────────────────────┘          │
+│                     │                                           │
+│  ┌──────────────────▼──────────────────────────────┐          │
+│  │  parseResult.js  —  Strict JSON schema validator  │         │
+│  │  Catches malformed AI output before rendering     │         │
+│  └──────────────────┬──────────────────────────────┘          │
+│                     │                                           │
+│  ┌──────────────────▼──────────────────────────────┐          │
+│  │  fallback.js  —  Deterministic fallback when     │          │
+│  │  AI API unavailable. Tier→score mapping,         │          │
+│  │  confidence-driven penalties, readable reasoning  │          │
+│  └──────────────────┬──────────────────────────────┘          │
+│                     │                                           │
+│  ┌──────────────────▼──────────────────────────────┐          │
+│  │  Result Display: ScoreGauge + TierBadge +       │          │
+│  │  WardCard + CoverageMap + Reasoning Cards        │          │
+│  └─────────────────────────────────────────────────┘          │
+│                                                               │
+│  ┌─────────────────────────────────────────────────────────┐  │
+│  │  Cloudflare Worker Proxy (API key hidden, free tier)   │  │
+│  │  Gemini 2.0 Flash API key never reaches the browser     │  │
+│  └─────────────────────────────────────────────────────────┘  │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+## What It Does
+
+Given any Bengaluru property address, PIN code, or area name, VanaRaksha produces a **comprehensive climate risk report** covering:
+
+- **🌊 Flood Risk** — Historical flood events, drainage density, terrain elevation, lake proximity
+- **🌡️ Urban Heat Island** — Vegetation cover (NDVI), impervious surface %, temperature delta
+- **💧 Water Stress** — Groundwater depth, BWSSB sewer coverage, rainfall patterns, landfill proximity
+
+Each assessment includes:
+- **Composite risk score** (0–100) with tier badge (Low/Medium/High/Critical)
+- **Three score gauges** with per-dimension confidence levels
+- **Evidence-based reasoning** citing specific ward data points
+- **Compound risk analysis** (how dimensions interact)
+- **Executive summary** and **actionable recommendations**
+- **Full data source trail** for auditability
+
+## WARD_DB — The Data Engine
+
+**25 wards** spanning all 8 BBMP zones, each with **29 fields** including:
+
+| Category | Fields |
+|---|---|
+| Identity | key, label, zone, pins, lat, lon, area_sqkm |
+| Risk Tiers | flood, uhi, water (Critical/High/Medium/Low) |
+| Quantitative | ndvi, impervious_pct, lake_count, lake_area_sqkm, pop_density, drainage_km_per_sqkm, soil_type, flood_events_10yr, water_table_depth_m, water_table_year, annual_rainage_mm, bwssb_sewer_coverage_pct |
+| Context | elevation, flood_incidents, uhi_delta, groundwater, bwssb, lakes_nalas, notes |
+| Provenance | _sources (18 source citations), _known_gaps, _proxy_note |
+
+### Data Sources (all free/public)
+
+- Census of India 2011 — ward-level population density
+- CGWB District Groundwater Brochures — water table depth
+- IMD Gridded Rainfall Dataset — annual rainfall
+- Sentinel-2 / Copernicus GLO-30 — land cover, impervious surface
+- MODIS (NASA) — NDVI, Land Surface Temperature
+- KLR Database (Karnataka) — lake inventory
+- OpenStreetMap Overpass API — drainage network
+- BBMP / BWSSB Annual Reports — infrastructure, flood records
+- NBSS&LUP — soil classification
+
+### Tier Consistency
+
+Every tier label is backed by ≥2 quantitative data points per the documented [methodology](docs/data-methodology.md). Known overrides (e.g., Vijayanagar water tier) are documented with rationale.
+
+## Project History
+
+### Session 1 — Architecture & Core Decisions
+- Defined 5-step wizard architecture (Landing → Location → Property → Photos → Results)
+- Selected 25 largest/most significant Bengaluru wards across all 8 BBMP zones
+- Designed WARD_DB schema with full source citation trail
+- Established tier assignment + nearest-zone interpolation methodology
+
+### Session 2 — WARD_DB v1.0 Compilation
+- Populated all 25 wards (100% field completeness, 725/725 data points)
+- Fixed 7 tier consistency violations
+- Added missing fields: rainfall_station, water_table_year, _known_gaps, _proxy_note
+- Restored verified Koramangala data with full source trail
+- Fixed ESM imports and variable naming bugs
+
+### Session 3 — Methodological Hardening
+- **P1:** Documented exact tier thresholds in data-methodology.md (all 3 dimensions)
+- **P3:** Replaced text-based distance estimation with haversine formula + per-ward landmark calibration
+- **P5:** Fixed Vijayanagar water tier (Critical → Medium) per quantitative thresholds
+
+## File Structure
+
+```
+vana-raksha/
+├── index.html                    # Vite entry point
+├── package.json                   # Vite 5.4 + React
+├── vite.config.js                 # Dev server on port 3000
+├── .env.example                   # Cloudflare Worker URL template
+├── README.md                      # ← This file
+├── PROGRESS.md                    # Milestone tracker
+├── DECISIONS.md                   # Architecture decision log
+├── AGENTS.md                      # Agent run instructions
+├── docs/
+│   ├── architecture.md            # System architecture + data flow
+│   ├── data-methodology.md        # Tier thresholds + scoring logic
+│   └── data-sources.md            # All free data sources with URLs
+├── agents/
+│   └── research-prompt.md         # Agent prompt for WARD_DB expansion
+└── src/
+    ├── VanaRaksha.jsx             # Main 5-step wizard component
+    ├── data/
+    │   └── WARD_DB.js             # 25 wards × 29 fields (v1.0.0)
+    ├── utils/
+    │   ├── matchWard.js           # Haversine + keyword + PIN matching
+    │   ├── buildPrompt.js         # Gemini system prompt builder
+    │   ├── fallback.js            # Deterministic fallback engine
+    │   └── parseResult.js         # JSON schema validator
+    └── components/
+        ├── ScoreGauge.jsx         # SVG donut gauge with confidence opacity
+        ├── TierBadge.jsx          # Colored tier pill (4 tiers)
+        ├── WardCard.jsx           # Ward baseline + interpolation notice
+        ├── CoverageMap.jsx        # SVG ward coverage map
+        └── StepDot.jsx            # Stepper indicator
+```
+
+## Scoring Methodology
+
+The system uses **two scoring modes**:
+
+### AI Mode (Primary)
+- Gemini 2.0 Flash receives ward data + photos + testimony
+- AI assigns **dynamic weights** per case (no fixed formula)
+- Output cites specific data points and published research
+- JSON schema validated before rendering
+
+### Fallback Mode (When AI Unavailable)
+- Fixed weights: 40% flood + 30% UHI + 30% water
+- Tier labels converted to numeric scores (Low=22, Medium=50, High=72, Critical=88)
+- Interpolated wards penalized −5%/km (max −30%)
+- Generates context-aware reasoning from WARD_DB text fields
+
+Full methodology: [docs/data-methodology.md](docs/data-methodology.md)
+
+## How to Replicate This Project
+
+An LLM reading this repo should be able to rebuild VanaRaksha by:
+
+1. **Read** `docs/data-methodology.md` for the full scoring framework
+2. **Read** `src/VanaRaksha.jsx` for the UI flow and component integration
+3. **Read** `src/utils/*.js` for the utility engine (matching, prompting, fallback, parsing)
+4. **Read** `src/components/*.jsx` for the UI components
+5. **Read** `src/data/WARD_DB.js` for the data schema and 25 populated wards
+6. **Follow** `agents/research-prompt.md` to expand WARD_DB to more wards
+7. **Deploy** to Vercel/Netlify — no build step, just `npm run build`
+
+## Dependencies
+
+- React 18 (via Vite)
+- No external UI libraries — all inline styles
+- No backend — all logic runs in the browser
+- Cloudflare Worker (free tier) for API key proxying
+- Google Gemini 2.0 Flash (free tier) for AI analysis
+
+## Known Limitations (v1.0.0)
+
+- 25/225 wards covered (interpolation handles gaps)
+- Census 2011 data (Census 2021 not yet published)
+- Drainage km/sqkm is estimated (OSM data incomplete)
+- No user location geocoding (text-based matching only)
+- Photos stored in React state (die on tab close)
+
+## License
+
+MIT License. Data sourced from public government and satellite datasets — see individual `_sources` entries in WARD_DB.js for per-field licensing.
