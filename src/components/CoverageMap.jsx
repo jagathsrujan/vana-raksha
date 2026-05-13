@@ -14,11 +14,12 @@ export default function CoverageMap({userLat,userLon,matchStatus}) {
       <rect x={20} y={20} width={MW-40} height={MH-40} rx={60} fill="none" stroke="#cbd5e1" strokeWidth="2" strokeDasharray="8,4"/>
       <text x={MW/2} y={25} textAnchor="middle" fontSize="12" fill="#94a3b8" fontWeight="600">Bengaluru Ward Coverage</text>
       {Object.entries(WARD_DB).map(([k,w]) => {
-        const c=WC[k];if(!c)return null;
-        const{x,y}=gp(c.lat,c.lon),hd=w.flood!=null&&w.ndvi!=null;
-        return<circle key={k} cx={x} cy={y} r={k==="koramangala"?7:5} fill={!hd?"#d1d5db":k==="koramangala"?"#059669":"#3b82f6"} stroke="white" strokeWidth={1} opacity={0.9}/>;
+        const c = WC[k]; if (!c) return null;
+        const {x,y} = gp(c.lat,c.lon);
+        const hd = w.flood != null && w.ndvi != null;
+        return <circle key={k} cx={x} cy={y} r={k==="koramangala" ? 7 : 5} fill={!hd ? "#d1d5db" : k==="koramangala" ? "#059669" : "#3b82f6"} stroke="white" strokeWidth={1} opacity={0.9} />;
       })}
-      {userLat&&userLon&&<circle cx={gp(userLat,userLon).x} cy={gp(userLat,userLon).y} r={10} fill="none" stroke="#ef4444" strokeWidth={3} strokeDasharray="4,3"/>}
+      {userLat && userLon && <circle cx={gp(userLat,userLon).x} cy={gp(userLat,userLon).y} r={10} fill="none" stroke="#ef4444" strokeWidth={3} strokeDasharray="4,3" />}
       <g transform={`translate(${MW-180},${MH-80})`}>
         <rect x={0} y={-20} width={170} height={90} rx={6} fill="white" stroke="#e5e7eb" opacity={0.95}/>
         <circle cx={12} cy={0} r={5} fill="#059669"/><text x={24} y={4} fontSize="10" fill="#1e293b">Verified</text>

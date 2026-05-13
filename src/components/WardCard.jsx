@@ -9,13 +9,13 @@ export default function WardCard({ ward, isInterpolated = false }) {
         <TierBadge tier={ward.flood} />
       </div>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:8}}>
-        {["\ud83c\udf0a Flood","\ud83c\udf21\ufe0f UHI","\ud83d\udca7 Water"].map((l,i) => {
+        {["🌊 Flood","🌡️ UHI","💧 Water"].map((l,i) => {
           const t = [ward.flood,ward.uhi,ward.water][i];
           return <div key={i} style={{fontSize:"0.8rem",textAlign:"center"}}><div style={{fontWeight:"600",color:"#dc2626"}}>{l}</div><TierBadge tier={t} size="sm" /></div>;
         })}
       </div>
       {ward.notes && <p style={{fontSize:"0.85rem",color:"#4b5563",margin:0,fontStyle:"italic"}}>{ward.notes}</p>}
-      {isInterpolated && <div style={{marginTop:8,padding:8,backgroundColor:"#fef3c7",borderRadius:6,fontSize:"0.8rem",color:"#92400e"}}>\u26a0\ufe0f {ward.interpolationNote||"Interpolated from nearest zone"}</div>}
+      {isInterpolated && <div style={{marginTop:8,padding:8,backgroundColor:"#fef3c7",borderRadius:6,fontSize:"0.8rem",color:"#92400e"}}>⚠️ {ward.interpolationNote||"Interpolated from nearest zone"}</div>}
     </div>
   );
 }

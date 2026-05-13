@@ -59,7 +59,7 @@ You are a climate data research agent compiling a ward-level climate risk databa
 4. Record ward area in sq km
 
 ### Phase 2: Tiers (~1 hr)
-5. Assign flood/uhi/water tiers supported by ≥2 quantitative data points
+5. Assign flood/uhi/water tiers supported by ?2 quantitative data points
 6. Document reasoning for each tier choice
 
 ### Phase 3: Data Collection (~2-3 hrs)
@@ -89,10 +89,10 @@ You are a climate data research agent compiling a ward-level climate risk databa
 - 100% of fields populated (or documented null in _known_gaps)
 - 100% of data points have source URL in _sources
 - Zero contradictions between tier labels and quantitative data
-- Data ≤5 years old (≤10 years with note)
+- Data ?5 years old (?10 years with note)
 
 ## Output
 - Single file: `src/data/WARD_DB.js`
 - Valid ES module: `export const WARD_DB = { ... }`
 - Include `_metadata` object at top
-- Work zone by zone: East → South → West → North → SE → Central → SW
+- Work zone by zone: East ? South ? West ? North ? SE ? Central ? SW

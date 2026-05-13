@@ -6,7 +6,7 @@ export default function StepDot({ n, current, label }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
       <div style={{ width: 28, height: 28, borderRadius: "50%", backgroundColor: active || done ? bg : "#f3f4f6", border: `2px solid ${bc}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.8rem", fontWeight: "700", color: tc }}>
-        {done ? "\u2713" : n + 1}
+        {done ? "✓" : n + 1}
       </div>
       <span style={{ fontSize: "0.7rem", color: active ? "#d97706" : done ? "#059669" : "#9ca3af", fontWeight: active ? "600" : "400" }}>{label}</span>
     </div>

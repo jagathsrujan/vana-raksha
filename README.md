@@ -1,1 +1,1 @@
-- **AI:** OpenAI GPT-4o (vision + reasoning) via Cloudflare Worker proxy
+PLACEHOLDER_WILL_BE_REPLACED
