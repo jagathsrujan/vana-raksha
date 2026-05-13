@@ -1,1 +1,1 @@
-- **AI:** OpenAI GPT-5.4-mini via OpenCode Zen API
+- **AI:** OpenAI GPT-4o (vision + reasoning) via Cloudflare Worker proxy
