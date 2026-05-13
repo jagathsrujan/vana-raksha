@@ -28,8 +28,8 @@ Every architectural and design decision is recorded here with date, rationale, a
 
 ### D5: WARD_DB — Single File, 25 Wards
 - **Decision:** One `WARD_DB.js` file containing all 25 wards. Expand coverage via nearest-zone interpolation.
-- **Rationale:** Single file is easier to audit, version control, and import. 25 wards cover largest/most significant areas.
-- **Trade-off:** File will be 50–100KB when fully populated. Split when scaling past 80 wards.
+- **Rationale:** Single file is easier to audit, version control, and import. 25 wards cover largest/most significant areas. Interpolation handles gaps transparently.
+- **Trade-off:** File will be 50–100KB. Split when scaling past 80 wards.
 
 ### D6: Ward Selection — 25 Largest/Most Significant
 - **Decision:** 25 wards spanning all 8 BBMP zones, prioritized by population and climate significance.
