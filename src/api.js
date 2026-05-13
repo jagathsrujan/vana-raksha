@@ -1,18 +1,17 @@
-// api.js — OpenAI API communication layer
-// All API calls go through a Cloudflare Worker proxy to hide the API key.
-// Direct OpenAI calls are used ONLY if no proxy URL is configured.
+// api.js — OpenCode Zen API communication layer
+// Uses OpenCode Zen (OpenAI-compatible gateway) for GPT-5.4-mini vision + reasoning.
+// All API calls go through zen.opencode.ai — API key never hardcoded.
 
 import { buildSystemPrompt } from "./utils/buildPrompt.js";
 import { parseAIResponse } from "./utils/parseResult.js";
 
 // --- Configuration ---
-const OPENAI_MODEL = "gpt-4o";
-const FALLBACK_MODEL = "gpt-4o-mini";
+const ZEN_MODEL = "gpt-5.4-mini";
 const MAX_RETRIES = 2;
 const RETRY_DELAY_MS = 1000;
 
 const API_PROXY_URL = import.meta.env.VITE_API_PROXY_URL || null;
-const OPENAI_DIRECT_KEY = import.meta.env.VITE_OPENAI_API_KEY || null;
+const ZEN_API_KEY = import.meta.env.VITE_ZEN_API_KEY || null;
 
 function getApiConfig() {
   if (API_PROXY_URL) {
@@ -20,25 +19,25 @@ function getApiConfig() {
       url: `${API_PROXY_URL.replace(/\/$/, "")}/v1/chat/completions`,
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${OPENAI_DIRECT_KEY || "proxy-key"}`,
+        "Authorization": `Bearer ${ZEN_API_KEY || "proxy-key"}`,
       },
       proxy: true,
-      model: OPENAI_MODEL,
+      model: ZEN_MODEL,
     };
   }
-  if (!OPENAI_DIRECT_KEY) {
+  if (!ZEN_API_KEY) {
     throw new Error(
-      "No API configuration found. Set VITE_API_PROXY_URL (Cloudflare Worker) or VITE_OPENAI_API_KEY (direct) in your .env file."
+      "No API configuration found. Set VITE_API_PROXY_URL (Cloudflare Worker) or VITE_ZEN_API_KEY (direct) in your .env file."
     );
   }
   return {
-    url: `https://api.openai.com/v1/chat/completions`,
+    url: `https://opencode.ai/zen/v1/chat/completions`,
     headers: {
       "Content-Type": "application/json",
-      "Authorization": `Bearer ${OPENAI_DIRECT_KEY}`,
+      "Authorization": `Bearer ${ZEN_API_KEY}`,
     },
     proxy: false,
-    model: OPENAI_MODEL,
+    model: ZEN_MODEL,
   };
 }
 
@@ -66,7 +65,7 @@ function buildMessages(systemPrompt, userContent, imageBase64 = null) {
   return messages;
 }
 
-async function callOpenAI(messages, model = OPENAI_MODEL, extraConfig = {}) {
+async function callZen(messages, model = ZEN_MODEL, extraConfig = {}) {
   const { url, headers } = getApiConfig();
   const body = {
     model,
@@ -133,9 +132,9 @@ export async function analyzePhoto(photo, matchedWard) {
     `}\n` +
     (annotations.length > 0 ? `\nUser annotations:\n${annotations.join("\n")}\n\n` : "");
   try {
-    const rawResponse = await callOpenAI(
+    const rawResponse = await callZen(
       buildMessages(systemPrompt, userContent, photo.base64),
-      OPENAI_MODEL,
+      ZEN_MODEL,
       { temperature: 0.2 }
     );
     return parseAIResponse(rawResponse, "photo");
@@ -203,9 +202,9 @@ export async function runSynthesis(
       : "No ward data available — use Bengaluru city-wide baselines.") +
     `\n\nYour task: Produce a single, authoritative risk assessment that synthesizes ALL evidence (photographic, testimonial, ward baseline, and city context). Be specific, cite data points, and flag any data gaps or contradictions.\n`;
   try {
-    const rawResponse = await callOpenAI(
+    const rawResponse = await callZen(
       buildMessages(systemPrompt, userContent),
-      OPENAI_MODEL,
+      ZEN_MODEL,
       { temperature: 0.2 }
     );
     return parseAIResponse(rawResponse, "synthesis");
@@ -222,7 +221,7 @@ export async function checkApiHealth() {
       config.url.replace("/chat/completions", `/models/${modelName}`),
       { method: "GET", headers: config.headers }
     );
-    if (response.ok) return { ok: true, details: `OpenAI API reachable (${modelName})` };
+    if (response.ok) return { ok: true, details: `OpenCode Zen API reachable (${modelName})` };
     const text = await response.text();
     if (response.status === 404) return { ok: true, details: `Auth OK (model ${modelName} not found but key is valid)` };
     return { ok: false, error: `${response.status}: ${text}` };
