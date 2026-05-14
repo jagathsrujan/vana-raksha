@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- Pin body -->
+  <path d="M32 8C22 8 16 18 16 28C16 38 24 50 32 56C40 50 48 38 48 28C48 18 42 8 32 8Z" fill="#dc2626"/>
+  <!-- Pin inner circle -->
+  <circle cx="32" cy="28" r="10" fill="#fca5a5"/>
+  <!-- Dot -->
+  <circle cx="32" cy="28" r="5" fill="#991b1b"/>
+  <!-- Shine -->
+  <circle cx="29" cy="25" r="2.5" fill="white" opacity="0.4"/>
+</svg>
