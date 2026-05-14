@@ -43,55 +43,83 @@ export default function VanaRaksha() {
     }
   };
 
-  const runSynthesis = async () => {
-    const photoSection = photos.map((p,i) => `Photo ${i+1}: ${p.why||'No annotation'} | Tags: ${(p.tags||[]).join(',')}`).join("\\n");
-    const testimonySection = testimonies.map(t => `- ${t.who||'Anonymous'} (${t.concern}, credibility ${t.credibility}/5): "${t.said}"`).join("\\n");
-    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-    const prompt = `Analyze this Bengaluru property for climate risk.
+const buildPhotoEvidence = () => {
+     if (!photos.length) return "None";
+     return photos.map((p, i) => {
+       const a = p.aiAnalysis || {};
+       const conf = a.confidence || "Low";
+       const floodStr = (a.flood_signals || []).join(", ") || "none detected";
+       const heatStr = (a.heat_signals || []).join(", ") || "none detected";
+       const waterStr = (a.water_signals || []).join(", ") || "none detected";
+       return `Photo ${i + 1} [confidence: ${conf}]:\n` +
+         `  Flood signals: ${floodStr}\n` +
+         `  Heat signals: ${heatStr}\n` +
+         `  Water signals: ${waterStr}\n` +
+         `  Key observation: ${a.key_observation || "none"}\n` +
+         `  User annotation: ${p.why || "none"}`;
+     }).join("\n\n");
+   };
+
+   const runSynthesis = async () => {
+     const photoSection = buildPhotoEvidence();
+     const testimonySection = testimonies.map(t => `- ${t.who||'Anonymous'} (${t.concern}, credibility ${t.credibility}/5): "${t.said}"`).join("\\n");
+     const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+     const prompt = `Analyze this Bengaluru property for climate risk.
 Location: ${location.address} ${location.ward} ${location.pin}
 Ward: ${matchedWard?.label||'Unknown'} | Type: ${propertyType} | Intent: ${userIntent}
 Notes: ${notes}
 
-Photos:\\n${photoSection||'None'}
+PHOTO EVIDENCE (per-photo AI analysis with confidence tags):
+${photoSection}
+
+PHOTO EVIDENCE GUIDELINES:
+- High-confidence photo signals should directly influence scoring.
+- Low-confidence signals should be noted but not heavily weighted.
+- If photo signals conflict with ward baseline data, explain the discrepancy.
+- Only increase a dimension's score if multiple photos corroborate OR one photo is High confidence.
 
 Testimony:\\n${testimonySection||'None'}
 
 Respond ONLY as valid JSON with: composite_score (0-100), composite_tier, flood/uhi/water each with score+tier+confidence+reasoning, compound_risk, executive_summary, flags[], recommendations[], data_sources[]`;
 
-    const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
-      method:"POST", headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({contents:[{role:"user",parts:[{text:prompt}]}], generationConfig:{response_mime_type:"application/json",temperature:0.1}})
-    });
-    const json = await resp.json();
-    const text = json.candidates?.[0]?.content?.parts?.[0]?.text;
-    return text ? JSON.parse(text) : null;
-  };
+     const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
+       method:"POST", headers:{"Content-Type":"application/json"},
+       body:JSON.stringify({contents:[{role:"user",parts:[{text:prompt}]}], generationConfig:{response_mime_type:"application/json",temperature:0.1}})
+     });
+     const json = await resp.json();
+     const text = json.candidates?.[0]?.content?.parts?.[0]?.text;
+     return text ? JSON.parse(text) : null;
+   };
 
-  const handleRunAnalysis = async () => {
-    setLoading(true); setApiError(null); setResult(null);
-    try {
-      const pa = [];
-      for (let i = 0; i < Math.min(photos.length, 5); i++) {
-        setLoadingMsg(`Analyzing photo ${i+1} of ${Math.min(photos.length,5)}...`);
-        pa.push(await analyzePhoto(photos[i], matchedWard));
-      }
-      setLoadingMsg("Synthesizing risk assessment...");
-      const synthesis = await runSynthesis();
-      if (synthesis) {
-        const parsed = parseAIResponse(JSON.stringify(synthesis), "synthesis");
-        setResult(parsed.ok ? parsed.data : buildFallback(matchedWard));
-      } else {
-        if (matchedWard) setResult(buildFallback(matchedWard));
-      }
-      setStep(5);
-    } catch(e) {
-      console.error(e);
-      setApiError(e.message);
-      if (matchedWard) setResult(buildFallback(matchedWard));
-    } finally {
-      setLoading(false); setLoadingMsg("");
-    }
-  };
+const handleRunAnalysis = async () => {
+     setLoading(true); setApiError(null); setResult(null);
+     try {
+       const pa = [];
+       const updatedPhotos = [...photos];
+       for (let i = 0; i < Math.min(updatedPhotos.length, 5); i++) {
+         setLoadingMsg(`Analyzing photo ${i+1} of ${Math.min(updatedPhotos.length,5)}...`);
+         const result = await analyzePhoto(updatedPhotos[i], matchedWard);
+         updatedPhotos[i].aiAnalysis = result;
+         pa.push(result);
+       }
+       setPhotos(updatedPhotos);
+       setLoadingMsg("Synthesizing risk assessment...");
+       const synthesis = await runSynthesis();
+       if (synthesis) {
+         const parsed = parseAIResponse(JSON.stringify(synthesis), "synthesis");
+         setResult(parsed.ok ? parsed.data : buildFallback(matchedWard));
+       } else {
+         if (matchedWard) setResult(buildFallback(matchedWard));
+       }
+       setStep(5);
+     } catch(e) {
+       console.error(e);
+       setApiError(e.message);
+       if (matchedWard) setResult(buildFallback(matchedWard));
+     } finally {
+       setLoading(false); setLoadingMsg("");
+     }
+   };
 
   const steps = ["","Location","Property","Photos","Testimony","Results"];
   return (
